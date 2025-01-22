@@ -339,6 +339,11 @@ void projectm_touch_destroy_all(projectm_handle instance)
     projectMInstance->TouchDestroyAll();
 }
 
+int projectm_get_preset_rating(projectm_handle instance){
+    auto projectMInstance = handle_to_instance(instance);
+    return projectMInstance->PresetRating();
+}
+
 bool projectm_get_preset_locked(projectm_handle instance)
 {
     auto projectMInstance = handle_to_instance(instance);

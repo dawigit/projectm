@@ -155,6 +155,7 @@ void ProjectM::RenderFrame(uint32_t targetFramebufferObject /*= 0*/)
             m_activePreset = std::move(m_transitioningPreset);
             m_transitioningPreset.reset();
             m_transition.reset();
+            m_presetRating = m_activePreset->PresetRating();
         }
         else
         {
@@ -353,6 +354,7 @@ auto ProjectM::PresetDuration() const -> double
     return m_timeKeeper->PresetDuration();
 }
 
+
 auto ProjectM::TargetFramesPerSecond() const -> int32_t
 {
     return m_targetFps;
@@ -454,6 +456,11 @@ auto ProjectM::GetRenderContext() -> Renderer::RenderContext
     ctx.textureManager = m_textureManager.get();
 
     return ctx;
+}
+
+auto ProjectM::PresetRating() -> int
+{
+    return m_activePreset->PresetRating();
 }
 
 } // namespace libprojectM

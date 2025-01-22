@@ -1,0 +1,153 @@
+diff -ruN src/api/include/projectM-4/parameters.h ../projectm.1/src/api/include/projectM-4/parameters.h
+--- src/api/include/projectM-4/parameters.h	2025-01-22 05:51:57.964642061 +0100
++++ ../projectm.1/src/api/include/projectM-4/parameters.h	2025-01-22 05:34:51.313716284 +0100
+@@ -335,6 +335,13 @@
+  */
+ PROJECTM_EXPORT void projectm_get_window_size(projectm_handle instance, size_t* width, size_t* height);
+ 
++
++/**
++ * @brief Returns the current preset rating
++ */
++PROJECTM_EXPORT int projectm_get_preset_rating(projectm_handle instance);
++
++
+ #ifdef __cplusplus
+ } // extern "C"
+ #endif
+diff -ruN src/libprojectM/MilkdropPreset/MilkdropPreset.cpp ../projectm.1/src/libprojectM/MilkdropPreset/MilkdropPreset.cpp
+--- src/libprojectM/MilkdropPreset/MilkdropPreset.cpp	2025-01-22 05:51:57.965642069 +0100
++++ ../projectm.1/src/libprojectM/MilkdropPreset/MilkdropPreset.cpp	2025-01-22 05:34:51.315716299 +0100
+@@ -214,6 +214,8 @@
+ #endif
+         throw MilkdropPresetLoadException("Could not parse preset file \"" + pathname + "\"");
+     }
++    m_Rating = (int)parser.GetFloat("fRating",0.0f);
++    printf("m_Rating = %d\n",m_Rating);
+ 
+     InitializePreset(parser);
+ }
+@@ -233,6 +235,8 @@
+ #endif
+         throw MilkdropPresetLoadException("Could not parse preset data.");
+     }
++    m_Rating = (int)parser.GetFloat("fRating",0.0f);
++    printf("m_Rating = %d\n",m_Rating);
+ 
+     InitializePreset(parser);
+ }
+@@ -314,5 +318,10 @@
+     return filename.substr(start + 1, filename.length());
+ }
+ 
++auto MilkdropPreset::PresetRating() -> int
++{
++    return m_Rating;
++}
++
+ } // namespace MilkdropPreset
+ } // namespace libprojectM
+diff -ruN src/libprojectM/MilkdropPreset/MilkdropPreset.hpp ../projectm.1/src/libprojectM/MilkdropPreset/MilkdropPreset.hpp
+--- src/libprojectM/MilkdropPreset/MilkdropPreset.hpp	2025-01-22 05:51:57.965642069 +0100
++++ ../projectm.1/src/libprojectM/MilkdropPreset/MilkdropPreset.hpp	2025-01-22 05:34:51.315716299 +0100
+@@ -86,6 +86,8 @@
+ 
+     void DrawInitialImage(const std::shared_ptr<Renderer::Texture>& image, const Renderer::RenderContext& renderContext) override;
+ 
++    auto PresetRating() -> int;
++
+ private:
+     void PerFrameUpdate();
+ 
+@@ -129,6 +131,7 @@
+     FinalComposite m_finalComposite; //!< Final composite shader or filters.
+ 
+     bool m_isFirstFrame{true}; //!< Controls drawing the motion vectors starting with the second frame.
++    int m_Rating{0};                //!< Preset rating.
+ };
+ 
+ } // namespace MilkdropPreset
+diff -ruN src/libprojectM/Preset.hpp ../projectm.1/src/libprojectM/Preset.hpp
+--- src/libprojectM/Preset.hpp	2025-01-22 05:51:57.968642092 +0100
++++ ../projectm.1/src/libprojectM/Preset.hpp	2025-01-22 05:34:51.314716291 +0100
+@@ -47,6 +47,8 @@
+     virtual void DrawInitialImage(const std::shared_ptr<Renderer::Texture>& image,
+                                   const Renderer::RenderContext& renderContext) = 0;
+ 
++    virtual auto PresetRating() -> int = 0;
++
+     inline void SetFilename(const std::string& filename)
+     {
+         m_filename = filename;
+diff -ruN src/libprojectM/ProjectM.cpp ../projectm.1/src/libprojectM/ProjectM.cpp
+--- src/libprojectM/ProjectM.cpp	2025-01-22 05:51:57.968642092 +0100
++++ ../projectm.1/src/libprojectM/ProjectM.cpp	2025-01-22 05:34:51.314716291 +0100
+@@ -155,6 +155,7 @@
+             m_activePreset = std::move(m_transitioningPreset);
+             m_transitioningPreset.reset();
+             m_transition.reset();
++            m_presetRating = m_activePreset->PresetRating();
+         }
+         else
+         {
+@@ -353,6 +354,7 @@
+     return m_timeKeeper->PresetDuration();
+ }
+ 
++
+ auto ProjectM::TargetFramesPerSecond() const -> int32_t
+ {
+     return m_targetFps;
+@@ -456,4 +458,9 @@
+     return ctx;
+ }
+ 
++auto ProjectM::PresetRating() -> int
++{
++    return m_activePreset->PresetRating();
++}
++
+ } // namespace libprojectM
+diff -ruN src/libprojectM/ProjectMCWrapper.cpp ../projectm.1/src/libprojectM/ProjectMCWrapper.cpp
+--- src/libprojectM/ProjectMCWrapper.cpp	2025-01-22 05:51:57.968642092 +0100
++++ ../projectm.1/src/libprojectM/ProjectMCWrapper.cpp	2025-01-22 05:34:51.314716291 +0100
+@@ -339,6 +339,11 @@
+     projectMInstance->TouchDestroyAll();
+ }
+ 
++int projectm_get_preset_rating(projectm_handle instance){
++    auto projectMInstance = handle_to_instance(instance);
++    return projectMInstance->PresetRating();
++}
++
+ bool projectm_get_preset_locked(projectm_handle instance)
+ {
+     auto projectMInstance = handle_to_instance(instance);
+diff -ruN src/libprojectM/ProjectM.hpp ../projectm.1/src/libprojectM/ProjectM.hpp
+--- src/libprojectM/ProjectM.hpp	2025-01-22 05:51:57.968642092 +0100
++++ ../projectm.1/src/libprojectM/ProjectM.hpp	2025-01-22 05:34:51.314716291 +0100
+@@ -145,6 +145,7 @@
+      */
+     auto PresetDuration() const -> double;
+ 
++
+     void SetPresetDuration(double seconds);
+ 
+     /**
+@@ -191,6 +192,8 @@
+ 
+     auto WindowHeight() -> int;
+ 
++    auto PresetRating() -> int;
++
+ private:
+     void Initialize();
+ 
+@@ -222,6 +225,7 @@
+ 
+     bool m_presetLocked{false};         //!< If true, the preset change event will not be sent.
+     bool m_presetChangeNotified{false}; //!< Stores whether the user has been notified that projectM wants to switch the preset.
++    int m_presetRating{0};         //!< Rating [0-5]
+ 
+     std::unique_ptr<PresetFactoryManager> m_presetFactoryManager; //!< Provides access to all available preset factories.
+ 

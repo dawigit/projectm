@@ -214,6 +214,8 @@ void MilkdropPreset::Load(const std::string& pathname)
 #endif
         throw MilkdropPresetLoadException("Could not parse preset file \"" + pathname + "\"");
     }
+    m_Rating = (int)parser.GetFloat("fRating",0.0f);
+    printf("m_Rating = %d\n",m_Rating);
 
     InitializePreset(parser);
 }
@@ -233,6 +235,8 @@ void MilkdropPreset::Load(std::istream& stream)
 #endif
         throw MilkdropPresetLoadException("Could not parse preset data.");
     }
+    m_Rating = (int)parser.GetFloat("fRating",0.0f);
+    printf("m_Rating = %d\n",m_Rating);
 
     InitializePreset(parser);
 }
@@ -312,6 +316,11 @@ auto MilkdropPreset::ParseFilename(const std::string& filename) -> std::string
     }
 
     return filename.substr(start + 1, filename.length());
+}
+
+auto MilkdropPreset::PresetRating() -> int
+{
+    return m_Rating;
 }
 
 } // namespace MilkdropPreset

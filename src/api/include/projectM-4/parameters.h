@@ -335,6 +335,13 @@ PROJECTM_EXPORT void projectm_set_window_size(projectm_handle instance, size_t w
  */
 PROJECTM_EXPORT void projectm_get_window_size(projectm_handle instance, size_t* width, size_t* height);
 
+
+/**
+ * @brief Returns the current preset rating
+ */
+PROJECTM_EXPORT int projectm_get_preset_rating(projectm_handle instance);
+
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

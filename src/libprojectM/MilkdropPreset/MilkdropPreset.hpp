@@ -86,6 +86,8 @@ public:
 
     void DrawInitialImage(const std::shared_ptr<Renderer::Texture>& image, const Renderer::RenderContext& renderContext) override;
 
+    auto PresetRating() -> int;
+
 private:
     void PerFrameUpdate();
 
@@ -129,6 +131,7 @@ private:
     FinalComposite m_finalComposite; //!< Final composite shader or filters.
 
     bool m_isFirstFrame{true}; //!< Controls drawing the motion vectors starting with the second frame.
+    int m_Rating{0};                //!< Preset rating.
 };
 
 } // namespace MilkdropPreset

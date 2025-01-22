@@ -47,6 +47,8 @@ public:
     virtual void DrawInitialImage(const std::shared_ptr<Renderer::Texture>& image,
                                   const Renderer::RenderContext& renderContext) = 0;
 
+    virtual auto PresetRating() -> int = 0;
+
     inline void SetFilename(const std::string& filename)
     {
         m_filename = filename;

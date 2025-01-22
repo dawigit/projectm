@@ -145,6 +145,7 @@ public:
      */
     auto PresetDuration() const -> double;
 
+
     void SetPresetDuration(double seconds);
 
     /**
@@ -191,6 +192,8 @@ public:
 
     auto WindowHeight() -> int;
 
+    auto PresetRating() -> int;
+
 private:
     void Initialize();
 
@@ -222,6 +225,7 @@ private:
 
     bool m_presetLocked{false};         //!< If true, the preset change event will not be sent.
     bool m_presetChangeNotified{false}; //!< Stores whether the user has been notified that projectM wants to switch the preset.
+    int m_presetRating{0};         //!< Rating [0-5]
 
     std::unique_ptr<PresetFactoryManager> m_presetFactoryManager; //!< Provides access to all available preset factories.
 
